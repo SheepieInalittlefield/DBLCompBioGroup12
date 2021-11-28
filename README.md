@@ -1,6 +1,9 @@
 # DBLCompBioGroup12
 Repository for code used for the DBL Computation Biology by group 12
 
+
+
+
 Basic workflow for using GitHub is as follows: 
 
 Clone the repository to your computer, so you have a local copy. 
