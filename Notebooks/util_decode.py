@@ -4,6 +4,29 @@ import numpy as np
 import functools
 import reedsolo
 
+def number_2_bytearray(num): 
+    """
+    INPUT:
+    num: string of binary bytes, so length multiple of 8 (eg. '010101101011011')
+    OUTPUT 
+    bytearray: bytearray conversion of the string
+    Takes a string of binary bytes and converts it to a bytearray.
+    """
+    return bytearray(int(num,2).to_bytes((len(num)+7) // 8, byteorder='big'))
+
+def bytearray_to_binary(Bytearray) -> str:
+    """
+    INPUT:
+    Bytearray: bytearray to be converted
+    OUTPUT:
+    binary_string: string of converted bytearray
+    takes a bytearray and converts it to a string of binary numbers, keeping leading and trailing zeros 
+    """
+    binary_string = ""
+    for i in Bytearray:
+        binary_string += format(i, '08b')
+    return binary_string
+
 def CheckBiochemicalRequirements(s, max_length=3, check=False):
     """ Check if a DNA-strand meets the biochemical requirements
     Input: 
@@ -116,11 +139,12 @@ def robust_soliton(K,c,delta) -> list:
     #initialize with the ideal distribution
     probabilities = ideal_soliton(K)
     # Define R
-    R = c*(math.log(K/delta))*math.sqrt(K)
+    R = c*(math.log(K/delta)**2)*math.sqrt(K)
     # calculate the additional probabilities
-    robust_probabilities = [0] + [R/(i*K) for i in range(1, int(K/R)-1)]
+    pivot = int(math.floor(K/R))
+    robust_probabilities = [0] + [R/(i*K) for i in range(1, pivot)]
     robust_probabilities += [(R*math.log(R/delta))/K]
-    robust_probabilities += [0 for i in range(int(K/R),K+1)]
+    robust_probabilities += [0 for i in range(pivot,K)]
     # add together
     probabilities = np.add(robust_probabilities, probabilities)
     #normalize 
@@ -128,7 +152,7 @@ def robust_soliton(K,c,delta) -> list:
     return probabilities
 
 
-def recover_seed(decoded_rs, total_segments):
+def recover_seed(decoded_rs, total_segments,distribution_size=1000):
     """
     INPUT: 
     decoded_rs: decoded droplet, in bytearray format
@@ -141,7 +165,7 @@ def recover_seed(decoded_rs, total_segments):
     prng = random.Random()
     droplet_seed = decoded_rs[0:32]
     prng.seed(droplet_seed)
-    amount_recovery = prng.choices(range(0,101), robust_soliton(100,0.1,0.05), k = 1)[0]
+    amount_recovery = prng.choices(range(0,distribution_size+1), robust_soliton(distribution_size,0.001,0.025), k = 1)[0]
     segment_indices = prng.sample(range(total_segments), k = amount_recovery)
     return (amount_recovery, segment_indices)
 
