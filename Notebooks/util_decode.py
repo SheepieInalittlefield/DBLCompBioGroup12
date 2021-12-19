@@ -205,6 +205,10 @@ def Decoding_step1and2(input_data, output_data):
             remaining_droplets.append((remaining_segments, XOR))
     return output_data
 
+def generate_key(keygenseed) -> int:
+    #generate a 1 byte key, using a fixed seed so it is repeatable
+    random.seed(keygenseed)
+    return random.randint(0,255)
 
 def unrandomize(solution, keygenseed = 7) -> bytearray:
     """
