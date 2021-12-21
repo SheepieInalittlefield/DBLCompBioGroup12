@@ -452,7 +452,7 @@ def CheckOligoLength(s, length=152, check=False):
     return check
 
 
-def RecoverSeed(droplet_seed, total_segments, distribution_size=1000):
+def RecoverSeed(droplet_seed, total_segments):
     """ Determine segments XORd into this droplet
     INPUT: 
         droplet_seed: seed (integer) of this droplet
@@ -463,7 +463,7 @@ def RecoverSeed(droplet_seed, total_segments, distribution_size=1000):
     """
     prng = random.Random()
     prng.seed(droplet_seed)
-    amount_recovery = prng.choices(range(0,distribution_size+1), RobustSoliton(distribution_size,0.001,0.025), k = 1)[0]
+    amount_recovery = prng.choices(range(0,total_segments+1), RobustSoliton(total_segments,0.001,0.025), k = 1)[0]
     segment_indices = prng.sample(range(total_segments), k = amount_recovery)
     return (amount_recovery, segment_indices)
 
