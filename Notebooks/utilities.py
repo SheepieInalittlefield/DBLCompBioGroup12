@@ -50,8 +50,7 @@ def Segment(message) -> list:
     segments = [message[i:i+n] for i in range(0, len(message), n)]
     return segments
 
-def SegmentAmount2DNA(number) -> str:
-    base_3 = np.base_repr(number,base=3)
+def Trits2DNA(base_3) -> str:
     meta_string=''
 
     A_dic = {'0':"C", '1': "G", '2':"T"}
@@ -72,6 +71,57 @@ def SegmentAmount2DNA(number) -> str:
             nucleotide = T_dic[base_3[i]]
         meta_string = meta_string + nucleotide
     return meta_string
+
+def CreateMetaStrand(number) -> str:
+    """
+    INPUT:
+    number: number of segments the datafile is split in
+    OUTPUT:
+    metasegment: segment containing metadata in DNA form
+    """
+    recognise_metadata = 'ACGTACGTACGTACGT'
+    base_3 = np.base_repr(number,base=3)
+    if len(base_3) > 16:
+        print("Number of segments is too big")
+    elif len(base_3) < 16:
+        base_3 = (16-len(base_3))*'0' + base_3
+    meta_string = Trits2DNA(base_3)
+    metasegment = ''
+    while len(metasegment) < 1:
+        Random = RandomSegment(meta_string)
+        metadata = recognise_metadata + meta_string + Random
+        if CheckBiochemicalRequirements(metadata) == True:
+            metasegment += metadata
+    metasegment += metasegment
+    return metasegment
+
+def RandomSegment(meta_string) -> str:
+    """
+    INPUT:
+    meta_string: string with the metadata in bases
+    OUTPUT:
+    random_segment: randomly created segment which can be added to the meta_string to form the final sequence if it passes biochemical restraints
+                    segment is a palindrome to make it more recognisable
+    """
+    random_segment = ''
+    j = int((60 - len(meta_string))/2)
+    for i in range(j):
+        x = random.randint(1,4)
+        if x == 1:
+            random_segment += 'A'
+        elif x == 2:
+            random_segment += 'T'
+        elif x == 3:
+            random_segment += 'C'
+        elif x == 4:
+            random_segment += 'G'
+    reverse = random_segment[::-1]
+    if (j % 2) == 0:
+        random_segment += reverse
+    else:
+        reverse = reverse[1:]
+        random_segment += reverse
+    return random_segment
 
 def DNA2SegmentLength(s):
     base_3 = ''
@@ -98,24 +148,124 @@ def DNA2SegmentLength(s):
     
     return segment_length
 
-def encode_metasegment(number) -> str:
+def PalindromeSubStrs(s):
     """
-    INPUT:
-    number: number of segments the datafile is split in
-    OUTPUT:
-    metasegment: segment containing metadata in DNA form
+    Function to find the longest palindrome in a string
+    Input:
+    s: string of nucleotides
+    Output:
+    palindrome: longest palindrome in s   
     """
-    recognise_metadata = 'ATCGATCGATCGATCGATCG'
-    meta_string = SegmentAmount2DNA(number)
-    metasegment = ''
-    while len(metasegment) < 1:
-        Random = random_segment(meta_string)
-        metadata = recognise_metadata + meta_string + Random
-        if CheckBiochemicalRequirements(metadata) == True:
-            metasegment += metadata
-    metasegment += metasegment
-    return metasegment
+    # Driver program
+    # This code is contributed by BHAVYA JAIN and ROHIT SIKKA
+    # https://www.geeksforgeeks.org/find-number-distinct-palindromic-sub-strings-given-string/
 
+    m = dict()
+    n = len(s)
+
+    # table for storing results (2 rows for odd-
+    # and even-length palindromes
+    R = [[0 for x in range(n+1)] for x in range(2)]
+
+    # Find all sub-string palindromes from the given input
+    # string insert 'guards' to iterate easily over s
+    s = "@" + s + "#"
+
+    for j in range(2):
+        rp = 0 # length of 'palindrome radius'
+        R[j][0] = 0
+
+        i = 1
+        while i <= n:
+
+            # Attempt to expand palindrome centered at i
+            while s[i - rp - 1] == s[i + j + rp]:
+                rp += 1 # Incrementing the length of palindromic
+                        # radius as and when we find valid palindrome
+
+            # Assigning the found palindromic length to odd/even
+            # length array
+            R[j][i] = rp
+            k = 1
+            while (R[j][i - k] != rp - k) and (k < rp):
+                R[j][i+k] = min(R[j][i-k], rp - k)
+                k += 1
+            rp = max(rp - k, 0)
+            i += k
+
+    # remove guards
+    s = s[1:len(s)-1]
+
+    # Put all obtained palindromes in a hash map to
+    # find only distinct palindrome
+    m[s[0]] = 1
+    for i in range(1,n):
+        for j in range(2):
+            for rp in range(R[j][i],0,-1):
+                m[s[i - rp - 1 : i - rp - 1 + 2 * rp + j]] = 1
+        m[s[i]] = 1
+
+
+    # find longest palindrome and return this
+    palindrome = max(m, key=len)
+    return palindrome
+    
+def DecodeMetaStrand(metasegment) -> int:
+    """
+    Function to decode metasegments made by encode_metasegment
+    INPUT:
+    metasegment: segment returned after sequencing
+    OUTPUT:
+    number_off_segments: number of segments the file was divided in according to this segment, 
+    this can be a single int or 2 integers based on if an error occured in one of the parts coding for the amount of segments
+    """
+    #check length
+    if len(metasegment) == 152:
+        s1 = metasegment[:len(metasegment)//2]
+        s2 = metasegment[len(metasegment)//2:]
+        #check if both halfs are the same
+        if s1 == s2:
+            s1 = s1.replace("ACGTACGTACGTACGT", "")
+            #Find palindrome
+            palindrome = PalindromeSubStrs(s1)
+            #remove palindrome
+            s1 = s1.replace(palindrome,"")
+            #Decode amount of segments
+            number_of_segments = int(DNA2SegmentLength(s1))
+        
+        else:
+            s1 = s1[20:]
+            s2 = s2[20:]
+            palindrome_s1 = PalindromeSubStrs(s1)
+            palindrome_s2 = PalindromeSubStrs(s2)
+            if palindrome_s1 == palindrome_s2:
+                s1 = s1.replace(palindrome_s1,"")  
+                s2 = s2.replace(palindrome_s2,"") 
+                if s1 == s2:
+                    number_of_segments = int(DNA2SegmentLength(s1))
+                else:
+                    number_of_segments = []
+                    number_of_segments.append(int(DNA2SegmentLength(s1)))
+                    number_of_segments.append(int(DNA2SegmentLength(s2)))
+            else:
+                palindrome = [palindrome_s1, palindrome_s2]
+                print(palindrome)
+                longest_palindrome = max(palindrome,key=len)
+                print(longest_palindrome)
+                s1 = s1[:(len(s1)-len(longest_palindrome))]
+                print(s1)
+                s2 = s2[:(len(s2)-len(longest_palindrome))]
+                if s1 == s2:
+                    number_of_segments = int(DNA2SegmentLength(s1))
+                else:
+                    number_of_segments = []
+                    number_of_segments.append(int(DNA2SegmentLength(s1)))
+                    number_of_segments.append(int(DNA2SegmentLength(s2)))
+                    
+    else:
+        print('Segment length is not 152 bases!')
+    return number_of_segments    
+    
 def IdealSoliton(K) -> list: 
     """ Generate a list of probalities of length K, following ideal soliton distribution
     INPUT:
