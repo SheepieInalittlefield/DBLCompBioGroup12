@@ -50,6 +50,72 @@ def Segment(message) -> list:
     segments = [message[i:i+n] for i in range(0, len(message), n)]
     return segments
 
+def SegmentAmount2DNA(number) -> str:
+    base_3 = np.base_repr(number,base=3)
+    meta_string=''
+
+    A_dic = {'0':"C", '1': "G", '2':"T"}
+    C_dic = {'0':"G", '1': "T", '2':"A"}
+    G_dic = {'0':"T", '1': "A", '2':"C"}
+    T_dic = {'0':"A", '1': "C", '2':"G"}
+
+    for i in range(len(base_3)):
+        if i == 0:
+            nucleotide = A_dic[base_3[i]]
+        elif meta_string[i-1] == 'A':
+            nucleotide = A_dic[base_3[i]]
+        elif meta_string[i-1] == 'C':
+            nucleotide = C_dic[base_3[i]]
+        elif meta_string[i-1] == 'G':
+            nucleotide = G_dic[base_3[i]]
+        elif meta_string[i-1] == 'T':
+            nucleotide = T_dic[base_3[i]]
+        meta_string = meta_string + nucleotide
+    return meta_string
+
+def DNA2SegmentLength(s):
+    base_3 = ''
+    A_dic = {'C':"0", 'G': "1", 'T':"2"}
+    C_dic = {'G':"0", 'T': "1", 'A':"2"}
+    G_dic = {'T':"0", 'A': "1", 'C':"2"}
+    T_dic = {'A':"0", 'C': "1", 'G':"2"}
+
+    for i in range(len(s)):
+        if i == 0:
+            digit = A_dic[s[i]]
+        elif s[i-1] == 'A':
+            digit = A_dic[s[i]]
+        elif s[i-1] == 'C':
+            digit = C_dic[s[i]]
+        elif s[i-1] == 'G':
+            digit = G_dic[s[i]]
+        elif s[i-1] == 'T':
+            digit = T_dic[s[i]]
+        base_3 = base_3 + digit
+    segment_length=0
+    for i in range(-1,-len(base_3)-1,-1):
+        segment_length = segment_length + int(base_3[i])*3**(-i-1)
+    
+    return segment_length
+
+def encode_metasegment(number) -> str:
+    """
+    INPUT:
+    number: number of segments the datafile is split in
+    OUTPUT:
+    metasegment: segment containing metadata in DNA form
+    """
+    recognise_metadata = 'ATCGATCGATCGATCGATCG'
+    meta_string = SegmentAmount2DNA(number)
+    metasegment = ''
+    while len(metasegment) < 1:
+        Random = random_segment(meta_string)
+        metadata = recognise_metadata + meta_string + Random
+        if CheckBiochemicalRequirements(metadata) == True:
+            metasegment += metadata
+    metasegment += metasegment
+    return metasegment
+
 def IdealSoliton(K) -> list: 
     """ Generate a list of probalities of length K, following ideal soliton distribution
     INPUT:
@@ -143,7 +209,7 @@ def LFSR():
     The result is an integer between 0 and 32^2-1 which will not repeat until all possible values have been passed
     """
     mask=0b100000000000000000000000011000101 # Do not change this one
-    result = 0b101011100 # Set the first state of the register
+    result = 0b00011011000110110001101100011011 #0b101011100 # Set the first state of the register
     nbits = mask.bit_length()-1
     while True:
         result = (result << 1) #Shift the register left once
