@@ -249,11 +249,11 @@ def DecodeMetaStrand(metasegment) -> int:
                     number_of_segments.append(int(DNA2SegmentLength(s2)))
             else:
                 palindrome = [palindrome_s1, palindrome_s2]
-                print(palindrome)
+                #print(palindrome)
                 longest_palindrome = max(palindrome,key=len)
-                print(longest_palindrome)
+                #print(longest_palindrome)
                 s1 = s1[:(len(s1)-len(longest_palindrome))]
-                print(s1)
+                #print(s1)
                 s2 = s2[:(len(s2)-len(longest_palindrome))]
                 if s1 == s2:
                     number_of_segments = int(DNA2SegmentLength(s1))
@@ -444,11 +444,11 @@ def CheckOligoLength(s, length=152, check=False):
     """
     if len(s) == length:
         check = True
-    else:
-        if len(s) < length:
-            print('oligo length is too short')
-        else:
-            print('oligo length is too long')
+    #else:
+    #    if len(s) < length:
+    #        print('oligo length is too short')
+    #    else:
+    #        print('oligo length is too long')
     return check
 
 
