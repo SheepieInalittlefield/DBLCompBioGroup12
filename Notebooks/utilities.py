@@ -451,11 +451,6 @@ def CheckOligoLength(s, length=152, check=False):
     #        print('oligo length is too long')
     return check
 
-def CheckOligoLengthSoft(s, length=152, check=False):
-    if abs(len(s)-length) <= 1:
-        check = True
-    return check
-
 
 def RecoverSeed(droplet_seed, total_segments):
     """ Determine segments XORd into this droplet
