@@ -234,8 +234,8 @@ def DecodeMetaStrand(metasegment) -> int:
             number_of_segments = int(DNA2SegmentLength(s1))
         
         else:
-            s1 = s1[20:]
-            s2 = s2[20:]
+            s1 = s1[16:]
+            s2 = s2[16:]
             palindrome_s1 = PalindromeSubStrs(s1)
             palindrome_s2 = PalindromeSubStrs(s2)
             if palindrome_s1 == palindrome_s2:
