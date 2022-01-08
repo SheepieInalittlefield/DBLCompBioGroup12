@@ -333,7 +333,7 @@ def PrepareSeed(seed):
         seed_index = seed_array
     return seed_index
 
-def MakeDroplet(randomized_segments, segment_seed, prng, nr_droplets_probabilities) -> bytearray:
+def MakeDroplet(randomized_segments, segment_seed, prng, nr_droplets_probabilities, reed_solo = 2) -> bytearray:
     """ Create droplet from seed and segments
     INPUT:
         randomized_segments: randomized and segmented data.
@@ -349,7 +349,7 @@ def MakeDroplet(randomized_segments, segment_seed, prng, nr_droplets_probabiliti
     segments = [randomized_segments[i] for i in segment_indices]
     droplet = seed_index + bytearray(functools.reduce(lambda i, j: bytes(a^b for (a, b) in zip(i,j)), segments))
     # prepare reedsolomon
-    rsc = reedsolo.RSCodec(2)
+    rsc = reedsolo.RSCodec(reed_solo)
     # create the encoded droplet (what will eventually be stored in DNA)
     droplet_rs = rsc.encode(droplet)
     return droplet_rs
@@ -449,6 +449,11 @@ def CheckOligoLength(s, length=152, check=False):
     #        print('oligo length is too short')
     #    else:
     #        print('oligo length is too long')
+    return check
+
+def CheckOligoLengthSoft(s, length=152, check=False):
+    if abs(len(s)-length) <= 1:
+        check = True
     return check
 
 
