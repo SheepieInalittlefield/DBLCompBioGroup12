@@ -72,10 +72,11 @@ def Trits2DNA(base_3) -> str:
         meta_string = meta_string + nucleotide
     return meta_string
 
-def CreateMetaStrand(number) -> str:
+def CreateMetaStrand(number,eccbytes) -> str:
     """
     INPUT:
     number: number of segments the datafile is split in
+    eccbytes: number of eccbytes added to the 
     OUTPUT:
     metasegment: segment containing metadata in DNA form
     """
@@ -88,14 +89,14 @@ def CreateMetaStrand(number) -> str:
     meta_string = Trits2DNA(base_3)
     metasegment = ''
     while len(metasegment) < 1:
-        Random = RandomSegment(meta_string)
+        Random = RandomSegment(meta_string,eccbytes)
         metadata = recognise_metadata + meta_string + Random
         if CheckBiochemicalRequirements(metadata) == True:
             metasegment += metadata
     metasegment += metasegment
     return metasegment
 
-def RandomSegment(meta_string) -> str:
+def RandomSegment(meta_string,eccbytes) -> str:
     """
     INPUT:
     meta_string: string with the metadata in bases
@@ -104,7 +105,7 @@ def RandomSegment(meta_string) -> str:
                     segment is a palindrome to make it more recognisable
     """
     random_segment = ''
-    j = int((60 - len(meta_string))/2)
+    j = int((56+2*eccbytes - len(meta_string))/2)
     for i in range(j):
         x = random.randint(1,4)
         if x == 1:
@@ -210,7 +211,7 @@ def PalindromeSubStrs(s):
     palindrome = max(m, key=len)
     return palindrome
     
-def DecodeMetaStrand(metasegment) -> int:
+def DecodeMetaStrand(metasegment, ecc_bytes) -> int:
     """
     Function to decode metasegments made by encode_metasegment
     INPUT:
@@ -220,7 +221,7 @@ def DecodeMetaStrand(metasegment) -> int:
     this can be a single int or 2 integers based on if an error occured in one of the parts coding for the amount of segments
     """
     #check length
-    if len(metasegment) == 152:
+    if len(metasegment) == 144+ecc_bytes*4:
         s1 = metasegment[:len(metasegment)//2]
         s2 = metasegment[len(metasegment)//2:]
         #check if both halfs are the same
