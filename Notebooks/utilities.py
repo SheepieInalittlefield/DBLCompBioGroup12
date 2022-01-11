@@ -500,6 +500,16 @@ def RecoverSeed(droplet_seed, total_segments):
     segment_indices = prng.sample(range(total_segments), k = amount_recovery)
     return (amount_recovery, segment_indices)
 
+def SampleDist_np_recover(dist,prng,np_prng):
+    amount = SampleNumber(dist,prng)
+    return (amount, np_prng.randint(0,len(dist)-1,amount))
+
+def RecoverSeed_np(droplet_seed, total_segments):
+    np_prng = np.random.RandomState(droplet_seed)
+    prng = random.Random()
+    prng.seed(droplet_seed)
+    return SampleDist_np_recover(RobustSoliton(total_segments,0.001,0.025), prng, np_prng)
+
 def Decode(input_data, output_data):
     """ Decode the payloads which have one segment not in output_data
     Input:
