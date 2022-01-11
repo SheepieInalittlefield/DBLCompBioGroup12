@@ -334,6 +334,38 @@ def PrepareSeed(seed):
         seed_index = seed_array
     return seed_index
 
+def SampleNumber(dist,prng):
+    for index, val in enumerate(dist):
+        p = prng.random()
+        if p < val:
+            return index
+    return index
+
+def SampleDist_np(dist,prng,np_prng):
+    amount = SampleNumber(dist,prng)
+    return np_prng.randint(0,len(dist)-1,amount)
+
+def MakeDropletNP(randomized_segments, segment_seed, prng, nr_droplets_probabilities, reed_solo = 2) -> bytearray:
+    """ Create droplet from seed and segments
+    INPUT:
+        randomized_segments: randomized and segmented data.
+        segment_seed: integer seed for the creation of the droplet.
+        prng: random.Random() random number generator.
+    OUTPUT:
+        droplet_rs: droplet encoded using Reed Solomon
+    """
+    seed_index = PrepareSeed(segment_seed)
+    np_prng = np.random.RandomState(segment_seed)
+    prng.seed(segment_seed)
+    segment_indices = SampleDist_np(nr_droplets_probabilities, prng, np_prng)
+    segments = [randomized_segments[i] for i in segment_indices]
+    droplet = seed_index + bytearray(functools.reduce(lambda i, j: bytes(a^b for (a, b) in zip(i,j)), segments))
+    # prepare reedsolomon
+    rsc = reedsolo.RSCodec(reed_solo)
+    # create the encoded droplet (what will eventually be stored in DNA)
+    droplet_rs = rsc.encode(droplet)
+    return droplet_rs
+
 def MakeDroplet(randomized_segments, segment_seed, prng, nr_droplets_probabilities, reed_solo = 2) -> bytearray:
     """ Create droplet from seed and segments
     INPUT:
